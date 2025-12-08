@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 from backend import LogManagementDB
 
@@ -11,9 +10,9 @@ menu = st.sidebar.radio(
     ["Student Login", "Student Logout", "Active Sessions", "View Student Details", "View Total Hours"]
 )
 
-# STUDENT LOGIN
+# student login
 if menu == "Student Login":
-    st.header("🔵 Student Login")
+    st.header("Student Login")
 
     roll_no = st.text_input("Enter Roll Number")
 
@@ -21,12 +20,13 @@ if menu == "Student Login":
         student_id = db.get_student_id(roll_no)
 
         if not student_id:
-            st.error("❌ Student not found!")
+            st.error("Student not found!")
         else:
             active = db.has_active_session(student_id)
 
             if active:
-                st.warning("⚠️ You are already logged in. Logout first.")
+                st.warning("You are already logged in.")
+                st.info(f"System: {active['system_name']}")
                 st.info(f"In Time: {active['in_time']}")
             else:
                 lab_choice = st.selectbox("Select Lab", ["Select", "IS", "CC", "CAT"])
@@ -41,14 +41,14 @@ if menu == "Student Login":
                         sys_id = system_dict[system]
 
                         if db.is_system_active(sys_id):
-                            st.error("❌ System already in use!")
+                            st.error("System already in use!")
                         else:
                             db.check_in(student_id, sys_id)
-                            st.success(f"✅ Logged in to {system}")
+                            st.success(f"Logged in to {system}")
 
-#STUDENT LOGOUT
+# student logout
 if menu == "Student Logout":
-    st.header("🔴 Student Logout")
+    st.header("Student Logout")
 
     roll_no = st.text_input("Enter Roll Number to Logout")
 
@@ -56,23 +56,23 @@ if menu == "Student Logout":
         student_id = db.get_student_id(roll_no)
 
         if not student_id:
-            st.error("❌ Student not found!")
+            st.error("Student not found!")
         else:
             active = db.has_active_session(student_id)
 
             if not active:
-                st.warning("⚠️ You are not logged in!")
+                st.warning("You are not logged in!")
             else:
-                st.info(f"Logged in system: {active['system_id']}")
+                st.info(f"System: {active['system_name']}")
                 st.info(f"In Time: {active['in_time']}")
 
                 if st.button("LOGOUT"):
                     db.check_out(student_id)
-                    st.success("✅ Logout successful")
+                    st.success("Logout successful")
 
-# ACTIVE SESSIONS
+# active sessions
 if menu == "Active Sessions":
-    st.header("🟢 Active Sessions")
+    st.header("Active Sessions")
 
     sessions = db.get_active_sessions()
     if sessions:
@@ -80,9 +80,9 @@ if menu == "Active Sessions":
     else:
         st.info("No active sessions.")
 
-# VIEW STUDENT DETAILS
+# student details
 if menu == "View Student Details":
-    st.header("👤 Student Details")
+    st.header("Student Details")
 
     roll_no = st.text_input("Enter Roll Number")
 
@@ -93,9 +93,9 @@ if menu == "View Student Details":
         else:
             st.error("Student not found.")
 
-# VIEW TOTAL HOURS
+# total hours
 if menu == "View Total Hours":
-    st.header("⏳ Total Logged Hours")
+    st.header("Total Logged Hours")
 
     roll_no = st.text_input("Enter Roll Number")
 

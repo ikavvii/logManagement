@@ -1,4 +1,3 @@
-# backend.py
 import mysql.connector
 
 class LogManagementDB:
@@ -11,11 +10,11 @@ class LogManagementDB:
         )
         self.cursor = self.conn.cursor(dictionary=True)
 
-    # Normalize roll number to uppercase
+    # normalize roll number
     def normalize_roll(self, roll_no):
         return roll_no.upper().strip()
 
-    # Get student_id from roll_no (case-insensitive)
+    # get student_id from roll_no
     def get_student_id(self, roll_no):
         roll_no = self.normalize_roll(roll_no)
         query = "SELECT student_id FROM student WHERE UPPER(roll_no) = %s"
@@ -23,14 +22,14 @@ class LogManagementDB:
         result = self.cursor.fetchone()
         return result["student_id"] if result else None
 
-    # Get student details
+    # get student details
     def get_student_details(self, roll_no):
         roll_no = self.normalize_roll(roll_no)
         query = "SELECT * FROM student WHERE UPPER(roll_no) = %s"
         self.cursor.execute(query, (roll_no,))
         return self.cursor.fetchone()
 
-    # Get active sessions
+    # get active sessions
     def get_active_sessions(self):
         query = """
         SELECT 
@@ -46,7 +45,7 @@ class LogManagementDB:
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
-    # Get systems under a specific lab prefix (IS, CC, CAT)
+    # get systems under specific lab prefix
     def get_systems_by_lab(self, lab_prefix):
         query = """
         SELECT system_id, system_name 
@@ -57,28 +56,32 @@ class LogManagementDB:
         self.cursor.execute(query, (lab_prefix + "%",))
         return self.cursor.fetchall()
 
-    # Check if system is already in use
+    # check if system is active
     def is_system_active(self, system_id):
-        query = """
-        SELECT * FROM logs 
-        WHERE system_id = %s AND out_time IS NULL
-        """
+        query = "SELECT * FROM logs WHERE system_id = %s AND out_time IS NULL"
         self.cursor.execute(query, (system_id,))
         return self.cursor.fetchone()
 
-    # Check if student has an active session
+    # check if student has active session
     def has_active_session(self, student_id):
-        query = "SELECT * FROM logs WHERE student_id = %s AND out_time IS NULL"
+        query = """
+        SELECT 
+            logs.in_time,
+            system_unit.system_name
+        FROM logs
+        JOIN system_unit ON logs.system_id = system_unit.system_id
+        WHERE logs.student_id = %s AND logs.out_time IS NULL
+        """
         self.cursor.execute(query, (student_id,))
         return self.cursor.fetchone()
 
-    # Student check-in
+    # student check-in
     def check_in(self, student_id, system_id):
         query = "INSERT INTO logs (student_id, system_id) VALUES (%s, %s)"
         self.cursor.execute(query, (student_id, system_id))
         self.conn.commit()
 
-    # Student check-out
+    # student check-out
     def check_out(self, student_id):
         query = """
         UPDATE logs 
@@ -88,7 +91,7 @@ class LogManagementDB:
         self.cursor.execute(query, (student_id,))
         self.conn.commit()
 
-    # Total hours of a student
+    # total hours of a student
     def get_total_hours(self, student_id):
         query = """
         SELECT SUM(TIMESTAMPDIFF(MINUTE, in_time, out_time)) AS minutes_spent
