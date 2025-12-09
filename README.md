@@ -68,8 +68,6 @@ A Streamlit-based application for managing student login/logout sessions in comp
 5. **Run the application**
    ```bash
    streamlit run app.py
-   # or
-   ./run.sh
    ```
 
 ## Usage
